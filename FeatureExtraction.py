@@ -38,7 +38,7 @@
 #             E *= (1 - alpha**2)
 #         return A
 
-import scipy
+import scipy.io
 from spafe.utils import vis
 from spafe.features.lfcc import lfcc
 from spafe.features.lpc import lpc, lpcc
