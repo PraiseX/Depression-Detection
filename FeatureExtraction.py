@@ -38,12 +38,25 @@
 #             E *= (1 - alpha**2)
 #         return A
 
-import scipy.io
+import scipy.io.wavfile
 from spafe.utils import vis
 from spafe.features.lfcc import lfcc
 from spafe.features.lpc import lpc, lpcc
 from spafe.features.mfcc import mfcc, imfcc
+from pydub import AudioSegment
+from pydub.utils import make_chunks
+from pyAudioAnalysis import audioSegmentation
 
+myaudio = AudioSegment.from_file("/Users/jessieeteng/Downloads/300_P/300_AUDIO.wav" , "wav") 
+chunk_length_ms = 4000 # pydub calculates in millisec
+chunks = make_chunks(myaudio, chunk_length_ms) #Make chunks of one sec
+
+#Export all of the individual chunks as wav files
+
+for i, chunk in enumerate(chunks):
+    chunk_name = "chunk{0}.wav".format(i)
+    print("exporting", chunk_name,
+    chunk.export(chunk_name, format="wav"))
 
 # init input vars
 num_ceps = 13
@@ -56,10 +69,12 @@ use_energy = False,
 lifter = 5
 normalize = False
 
+#separate ellie and participant
+diarization = speaker_diarization("/Users/jessieeteng/Downloads/300_P/300_AUDIO.wav", 2)
 
 # read wav
 # noinspection PyUnresolvedReferences
-fs, sig = scipy.io.wavfile.read("D:\MQP\492_AUDIO.wav")
+fs, sig = scipy.io.wavfile.read("/Users/jessieeteng/Downloads/300_P/300_AUDIO.wav")
 
 # compute features
 lfccs = lfcc(sig=sig,
