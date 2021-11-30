@@ -91,29 +91,63 @@ au_file_test = pd.concat(au_file_test, axis=0)
 
 
 
-scaler = MinMaxScaler()                                                
+scaler = MinMaxScaler()  
 
-au_file = scaler.fit_transform(au_file)  
-au_file_test = scaler.fit_transform(au_file_test) 
 
+
+au_file_transformed = scaler.fit_transform(au_file)  
+au_file_test_transformed = scaler.fit_transform(au_file_test) 
+
+train_PHQ8B_3bins = est.fit_transform(train_PHQ8B)
+train_PHQ8B_2bins = est2.fit_transform(test_PHQ8B)
+test_PHQ8B_3bins = est.fit_transform(test_PHQ8B)
+test_PHQ8B_2bins = est2.fit_transform(train_PHQ8B)
+
+train_PHQ8B_3T = scaler.fit_transform(train_PHQ8B_3bins)
+train_PHQ8B_2T = scaler.fit_transform(train_PHQ8B_2bins)
+test_PHQ8B_3T = scaler.fit_transform(test_PHQ8B_3bins)
+test_PHQ8B_2T = scaler.fit_transform(test_PHQ8B_2bins)
 
 regr = RandomForestRegressor(max_depth=2, random_state=0)              
 clf=svm.SVC()
 xgb_model = xgb.XGBRegressor(objective="reg:linear", random_state=42)
+#include naive bayes
+
 
 # groundtruth = train_list['PHQ8_Score'] 
                     
-trainregr = regr.fit(au_file, train_PHQ8B) 
-trainclf = clf.fit(au_file, train_PHQ8B)
-trainxgb = xgb_model.fit(au_file, train_PHQ8B)
+trainregr3 = regr.fit(au_file, train_PHQ8B_3T) 
+trainregr2 = regr.fit(au_file, train_PHQ8B_2T) 
+
+trainclf3 = clf.fit(au_file, train_PHQ8B_3T)
+trainclf2 = clf.fit(au_file, train_PHQ8B_2T)
+
+trainxgb3 = xgb_model.fit(au_file, train_PHQ8B_3T)
+trainxgb2 = xgb_model.fit(au_file, train_PHQ8B_2T)
+
 #include naive bayes
 
+
+#fitting the files into 2 and 3 bins..then what?
 predictionRegr = regr.predict(au_file_test)   
 predictionSVM = clf.predict(au_file_test)                             
 predictionXGB = xgb_model.predict(au_file_test)
 
-est.fit(train_PHQ8B)      
-est2.fit(train_PHQ8B)
+#predict using test_phq scores?
+predictionRegrPHQ_3B = regr.predict(test_PHQ8B_3T)   
+predictionRegrPHQ_2B = regr.predict(test_PHQ8B_2T)   
+
+predictionSVMPHQ_3B = clf.predict(test_PHQ8B_3T)       
+predictionSVMPHQ_2B = clf.predict(test_PHQ8B_2T)                             
+
+predictionXGBPHQ_3B = xgb_model.predict(test_PHQ8B_3T)
+predictionXGBPHQ_2B = xgb_model.predict(test_PHQ8B_2T)
+
+au_file_transformed_3bins = est.fit_transform(au_file_transformed) 
+au_file_transformed_2bins = est2.fit_transform(au_file_transformed)      
+
+au_file_test_transformed_3bins = est.fit_transform(au_file_test_transformed)
+au_file_test_transformed_2bins = est2.fit_transform(au_file_test_transformed)
 
 
 threebins = est.transform(predictionRegr)
