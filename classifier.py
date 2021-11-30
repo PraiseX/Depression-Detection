@@ -159,12 +159,38 @@ twobinsgt = est2.transform(test_PHQ8B)
 #average all predictions
 #
 
-regrROC = sklearn.metrics.roc_auc_score(test_PHQ8B, clf.predict_proba(au_file_test))
-accuracy = accuracy_score(test_PHQ8B, au_file_test)
-f1 = f1_score(test_PHQ8B, au_file_test)
-tn, fp, fn, tp = confusion_matrix(test_PHQ8B, au_file_test).ravel()
+#metrics for regression
+regrROC3regr = sklearn.metrics.roc_auc_score(predictionRegrPHQ_3B, clf.predict_proba(au_file_test))
+regrROC2regr = sklearn.metrics.roc_auc_score(predictionRegrPHQ_2B, clf.predict_proba(au_file_test))
+accuracy3regr = accuracy_score(predictionRegrPHQ_3B, au_file_test)
+accuracy2regr = accuracy_score(predictionRegrPHQ_2B, au_file_test)
+f13regr = f1_score(predictionRegrPHQ_3B, au_file_test)
+f12regr = f1_score(predictionRegrPHQ_2B, au_file_test)
+tn3regr, fp3regr, fn3regr, tp3regr = confusion_matrix(predictionRegrPHQ_3B, au_file_test).ravel()
+tn2regr, fp2regr, fn2regr, tp2regr = confusion_matrix(predictionRegrPHQ_2B, au_file_test).ravel()
 
-#print("auc_roc:", regrROC)
+#metrics for svm
+regrROC3svm = sklearn.metrics.roc_auc_score(predictionSVMPHQ_3B, clf.predict_proba(au_file_test))
+regrROC2svm = sklearn.metrics.roc_auc_score(predictionSVMPHQ_2B, clf.predict_proba(au_file_test))
+accuracy3svm = accuracy_score(predictionSVMPHQ_3B, au_file_test)
+accuracy2svm = accuracy_score(predictionSVMPHQ_2B, au_file_test)
+f13svm = f1_score(predictionSVMPHQ_3B, au_file_test)
+f12svm = f1_score(predictionSVMPHQ_2B, au_file_test)
+tn3svm, fp3svm, fn3svm, tp3svm = confusion_matrix(predictionSVMPHQ_3B, au_file_test).ravel()
+tn2svm, fp2svm, fn2svm, tp2svm = confusion_matrix(predictionSVMPHQ_2B, au_file_test).ravel()
+
+#metrics for xgb
+regrROC3xgb = sklearn.metrics.roc_auc_score(predictionXGBPHQ_3B, clf.predict_proba(au_file_test))
+regrROC2xgb = sklearn.metrics.roc_auc_score(predictionXGBPHQ_2B, clf.predict_proba(au_file_test))
+accuracy3xgb = accuracy_score(predictionXGBPHQ_3B, au_file_test)
+accuracy2xgb = accuracy_score(predictionXGBPHQ_2B, au_file_test)
+f13xgb = f1_score(predictionXGBPHQ_3B, au_file_test)
+f12xgb = f1_score(predictionXGBPHQ_2B, au_file_test)
+tn3xgb, fp3xgb, fn3xgb, tp3xgb = confusion_matrix(predictionXGBPHQ_3B, au_file_test).ravel()
+tn2xgb, fp2xgb, fn2xgb, tp2xgb = confusion_matrix(predictionXGBPHQ_2B, au_file_test).ravel()
+
+
+
 
 
 
