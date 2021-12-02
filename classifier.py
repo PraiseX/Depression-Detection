@@ -3,11 +3,13 @@ import os
 import pandas as pd  
 import glob
 import numpy as np  
-from sklearn.ensemble import RandomForestRegressor 
+from sklearn.ensemble import RandomForestClassifier 
+from sklearn.naive_bayes import GaussianNB
 from sklearn.preprocessing import MinMaxScaler, KBinsDiscretizer
 from sklearn.model_selection import cross_val_score, GridSearchCV, KFold, RandomizedSearchCV, train_test_split
 from sklearn import svm
-from sklearn.metrics import accuracy_score, f1_score, confusion_matrix
+from sklearn.metrics import accuracy_score, f1_score, confusion_matrix, roc_auc_score
+from sklearn.linear_model import LogisticRegression
 
 
 import xgboost as xgb                         
@@ -41,6 +43,9 @@ train_list = pd.read_csv('D:\MQP\dataset\DAICWOZ\\train_split_Depression_AVEC201
 train_user_id = train_list['Participant_ID']                           
 train_PHQ8B = train_list['PHQ8_Score'] 
 
+print("type: ", type(train_PHQ8B))
+print("train_PHQ: ", train_PHQ8B)
+
 est = KBinsDiscretizer(n_bins=3, encode='ordinal', strategy='uniform')
 est2 = KBinsDiscretizer(n_bins=2, encode='ordinal', strategy='uniform')
 
@@ -49,10 +54,15 @@ test_list = pd.read_csv('D:\MQP\dataset\DAICWOZ\dev_split_Depression_AVEC2017.cs
 test_user_id = test_list['Participant_ID']                           
 test_PHQ8B = test_list['PHQ8_Score'] 
 
+train_PHQ8B_float = pd.to_numeric(train_PHQ8B,downcast='float')
+
+print("type train_PHQ8B_float: ", type(train_PHQ8B_float))
+
 
 au_file = [] 
 au_file_test = []
 
+#Load train and test features and labels
 #make sure all the participants from the training split are in folder
 for train_u in train_user_id: 
     #depending on the file use different seperators
@@ -83,8 +93,8 @@ for test_u in test_user_id:
 
 # avg_score = train_PHQ8B.mean / train_PHQ8B.__len__ - 1                      
 
-print("mean:", au_file_tmp_mean)
-print("std:", au_file_tmp_std)
+# print("mean:", au_file_tmp_mean)
+# print("std:", au_file_tmp_std)
 
 au_file = pd.concat(au_file, axis=0)    
 au_file_test = pd.concat(au_file_test, axis=0)    
@@ -94,103 +104,102 @@ au_file_test = pd.concat(au_file_test, axis=0)
 scaler = MinMaxScaler()  
 
 
-
+#Normalize train features and apply on test
 au_file_transformed = scaler.fit_transform(au_file)  
-au_file_test_transformed = scaler.fit_transform(au_file_test) 
 
-train_PHQ8B_3bins = est.fit_transform(train_PHQ8B)
-train_PHQ8B_2bins = est2.fit_transform(test_PHQ8B)
-test_PHQ8B_3bins = est.fit_transform(test_PHQ8B)
-test_PHQ8B_2bins = est2.fit_transform(train_PHQ8B)
+print("type au file transformed:", au_file_transformed)
 
-train_PHQ8B_3T = scaler.fit_transform(train_PHQ8B_3bins)
-train_PHQ8B_2T = scaler.fit_transform(train_PHQ8B_2bins)
-test_PHQ8B_3T = scaler.fit_transform(test_PHQ8B_3bins)
-test_PHQ8B_2T = scaler.fit_transform(test_PHQ8B_2bins)
+au_file_test_transformed = scaler.transform(au_file_test) 
 
-regr = RandomForestRegressor(max_depth=2, random_state=0)              
+#Initialize classifier
+regr = RandomForestClassifier(max_depth=2, random_state=0)              
 clf=svm.SVC()
 xgb_model = xgb.XGBRegressor(objective="reg:linear", random_state=42)
-#include naive bayes
 
-
-# groundtruth = train_list['PHQ8_Score'] 
-                    
-trainregr3 = regr.fit(au_file, train_PHQ8B_3T) 
-trainregr2 = regr.fit(au_file, train_PHQ8B_2T) 
-
-trainclf3 = clf.fit(au_file, train_PHQ8B_3T)
-trainclf2 = clf.fit(au_file, train_PHQ8B_2T)
-
-trainxgb3 = xgb_model.fit(au_file, train_PHQ8B_3T)
-trainxgb2 = xgb_model.fit(au_file, train_PHQ8B_2T)
 
 #include naive bayes
 
 
-#fitting the files into 2 and 3 bins..then what?
-predictionRegr = regr.predict(au_file_test)   
-predictionSVM = clf.predict(au_file_test)                             
-predictionXGB = xgb_model.predict(au_file_test)
-
-#predict using test_phq scores?
-predictionRegrPHQ_3B = regr.predict(test_PHQ8B_3T)   
-predictionRegrPHQ_2B = regr.predict(test_PHQ8B_2T)   
-
-predictionSVMPHQ_3B = clf.predict(test_PHQ8B_3T)       
-predictionSVMPHQ_2B = clf.predict(test_PHQ8B_2T)                             
-
-predictionXGBPHQ_3B = xgb_model.predict(test_PHQ8B_3T)
-predictionXGBPHQ_2B = xgb_model.predict(test_PHQ8B_2T)
-
-au_file_transformed_3bins = est.fit_transform(au_file_transformed) 
-au_file_transformed_2bins = est2.fit_transform(au_file_transformed)      
-
-au_file_test_transformed_3bins = est.fit_transform(au_file_test_transformed)
-au_file_test_transformed_2bins = est2.fit_transform(au_file_test_transformed)
+#Train the classifier on normalized train features and train labels                 
+trainregr3 = regr.fit(au_file_transformed, train_PHQ8B_float) 
+#trainregr2 = regr.fit(au_file, train_PHQ8B_2T) 
+trainclf3 = clf.fit(au_file_transformed, train_PHQ8B)
+#trainclf2 = clf.fit(au_file, train_PHQ8B_2T)
+trainxgb3 = xgb_model.fit(au_file_transformed, train_PHQ8B)
+#trainxgb2 = xgb_model.fit(au_file, train_PHQ8B_2T)
+#include naive bayes
 
 
-threebins = est.transform(predictionRegr)
-threebinsgt = est.transform(test_PHQ8B)
+#Make predictions on normalized test features, which will gives you the predicted labels
+predictionRegr = regr.predict(au_file_test_transformed)   
+predictionSVM = clf.predict(au_file_test_transformed)                             
+predictionXGB = xgb_model.predict(au_file_test_transformed)
 
-twobins = est2.transform(predictionRegr)
-twobinsgt = est2.transform(test_PHQ8B)
+#Divide the test labels and predicted labels into K-bins and calculate corresponding metrics.
+train_PHQ8B_3BT = est.fit_transform(train_PHQ8B)
+test_PHQ8B_3BT = est.transform(test_PHQ8B)
+predictionRegr_3BT = est.transform(predictionRegr)
+predictionSVM_3BT = est.transform(predictionSVM)
+predictionXGB_3BT = est.transform(predictionXGB)
 
-#average all predictions
-#
+
+train_PHQ8B_2BT = est2.fit_transform(train_PHQ8B)
+test_PHQ8B_2BT = est2.transform(test_PHQ8B)
+predictionRegr_2BT = est2.transform(predictionRegr)
+predictionSVM_2BT = est2.transform(predictionSVM)
+predictionXGB_2BT = est2.transform(predictionXGB)
+
+predictprobRFC = regr.predict_proba(au_file_test)
+predictprobSVM = clf.predict_proba(au_file_test)
+predictprobXGB = xgb_model.classes_
+
+twobinrfc = len(predictprobRFC) / 2.0
+twobinsvm = len(predictprobSVM) / 2.0
+
+rfc = np.add.reduceat(predictprobRFC, np.arange(0, len(predictprobRFC), twobinrfc))
+
+
+print("predict_prob: ", predictprobRFC)
+
 
 #metrics for regression
-regrROC3regr = sklearn.metrics.roc_auc_score(predictionRegrPHQ_3B, clf.predict_proba(au_file_test))
-regrROC2regr = sklearn.metrics.roc_auc_score(predictionRegrPHQ_2B, clf.predict_proba(au_file_test))
-accuracy3regr = accuracy_score(predictionRegrPHQ_3B, au_file_test)
-accuracy2regr = accuracy_score(predictionRegrPHQ_2B, au_file_test)
-f13regr = f1_score(predictionRegrPHQ_3B, au_file_test)
-f12regr = f1_score(predictionRegrPHQ_2B, au_file_test)
-tn3regr, fp3regr, fn3regr, tp3regr = confusion_matrix(predictionRegrPHQ_3B, au_file_test).ravel()
-tn2regr, fp2regr, fn2regr, tp2regr = confusion_matrix(predictionRegrPHQ_2B, au_file_test).ravel()
+#regrROC3regr = sklearn.metrics.roc_auc_score(test_PHQ8B_3BT, clf.predict_proba(au_file_test))
+regrROC2regr = sklearn.metrics.roc_auc_score(test_PHQ8B_2BT, clf.predict_proba(au_file_test))
+accuracy3regr = accuracy_score(test_PHQ8B_3BT, predictionRegr_3BT)
+accuracy2regr = accuracy_score(test_PHQ8B_2BT, predictionRegr_2BT)
+f13regr = f1_score(test_PHQ8B_3BT, predictionRegr_3BT)
+f12regr = f1_score(test_PHQ8B_2BT, predictionRegr_2BT)
+tn3regr, fp3regr, fn3regr, tp3regr = confusion_matrix(test_PHQ8B_3BT, predictionRegr_3BT).ravel()
+tn2regr, fp2regr, fn2regr, tp2regr = confusion_matrix(test_PHQ8B_2BT, predictionRegr_2BT).ravel()
+
+
+# probability = clf.predict_proba(au_file_test)
+# probability
 
 #metrics for svm
-regrROC3svm = sklearn.metrics.roc_auc_score(predictionSVMPHQ_3B, clf.predict_proba(au_file_test))
-regrROC2svm = sklearn.metrics.roc_auc_score(predictionSVMPHQ_2B, clf.predict_proba(au_file_test))
-accuracy3svm = accuracy_score(predictionSVMPHQ_3B, au_file_test)
-accuracy2svm = accuracy_score(predictionSVMPHQ_2B, au_file_test)
-f13svm = f1_score(predictionSVMPHQ_3B, au_file_test)
-f12svm = f1_score(predictionSVMPHQ_2B, au_file_test)
-tn3svm, fp3svm, fn3svm, tp3svm = confusion_matrix(predictionSVMPHQ_3B, au_file_test).ravel()
-tn2svm, fp2svm, fn2svm, tp2svm = confusion_matrix(predictionSVMPHQ_2B, au_file_test).ravel()
+#regrROC3svm = sklearn.metrics.roc_auc_score(test_PHQ8B, clf.predict_proba(au_file_test))
+#returns array
+#divide 
+regrROC2svm = sklearn.metrics.roc_auc_score(test_PHQ8B_2BT, clf.predict_proba(au_file_test))
+accuracy3svm = accuracy_score(test_PHQ8B_3BT, predictionRegr_3BT)
+accuracy2svm = accuracy_score(test_PHQ8B_2BT, predictionRegr_2BT)
+f13svm = f1_score(test_PHQ8B_3BT, predictionRegr_3BT)
+f12svm = f1_score(test_PHQ8B_2BT, predictionRegr_2BT)
+tn3svm, fp3svm, fn3svm, tp3svm = confusion_matrix(test_PHQ8B_3BT, predictionRegr_3BT).ravel()
+tn2svm, fp2svm, fn2svm, tp2svm = confusion_matrix(test_PHQ8B_2BT, predictionRegr_2BT).ravel()
 
 #metrics for xgb
-regrROC3xgb = sklearn.metrics.roc_auc_score(predictionXGBPHQ_3B, clf.predict_proba(au_file_test))
-regrROC2xgb = sklearn.metrics.roc_auc_score(predictionXGBPHQ_2B, clf.predict_proba(au_file_test))
-accuracy3xgb = accuracy_score(predictionXGBPHQ_3B, au_file_test)
-accuracy2xgb = accuracy_score(predictionXGBPHQ_2B, au_file_test)
-f13xgb = f1_score(predictionXGBPHQ_3B, au_file_test)
-f12xgb = f1_score(predictionXGBPHQ_2B, au_file_test)
-tn3xgb, fp3xgb, fn3xgb, tp3xgb = confusion_matrix(predictionXGBPHQ_3B, au_file_test).ravel()
-tn2xgb, fp2xgb, fn2xgb, tp2xgb = confusion_matrix(predictionXGBPHQ_2B, au_file_test).ravel()
+#regrROC3xgb = sklearn.metrics.roc_auc_score(test_PHQ8B_3BT, clf.predict_proba(au_file_test))
+# regrROC2xgb = sklearn.metrics.roc_auc_score(test_PHQ8B_2BT, clf.predict_proba(au_file_test))
+accuracy3xgb = accuracy_score(test_PHQ8B_3BT, predictionRegr_3BT)
+accuracy2xgb = accuracy_score(test_PHQ8B_2BT, predictionRegr_2BT)
+f13xgb = f1_score(test_PHQ8B_3BT, predictionRegr_3BT)
+f12xgb = f1_score(test_PHQ8B_2BT, predictionRegr_2BT)
+tn3xgb, fp3xgb, fn3xgb, tp3xgb = confusion_matrix(test_PHQ8B_3BT, predictionRegr_3BT).ravel()
+tn2xgb, fp2xgb, fn2xgb, tp2xgb = confusion_matrix(test_PHQ8B_2BT, predictionRegr_2BT).ravel()
 
 
-
+print("fiscore:", f12svm)
 
 
 
