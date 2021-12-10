@@ -65,7 +65,14 @@ train_PHQ8B_2BT = est2.fit_transform(train_PHQ8B)
 test_list = pd.read_csv('D:\MQP\dataset\DAICWOZ\dev_split_Depression_AVEC2017.csv')                                                         
 test_user_id = test_list['Participant_ID']                           
 test_PHQ8B = test_list[['PHQ8_Score']] 
-groundtruth = np.reshape(test_PHQ8B,(-1,1))
+groundtruth = est.transform(np.array(test_PHQ8B)).flatten()
+groundtruth2 = est2.transform(np.array(test_PHQ8B)).flatten()
+
+
+#print("Groundtruth(3bins):", est.transform(test_PHQ8B))
+print("Groundtruth(3bins(reshaped)):", groundtruth)
+print("Groundtruth(2bins(reshaped)):", groundtruth2)
+
 
 #print("groundtrush is:", groundtruth)
 
@@ -91,8 +98,8 @@ print("---loading AU Files----")
 for idx, train_u in enumerate(train_user_id):
     #depending on the file use different seperators
     au_file_tmp = pd.read_csv(path+'{}_CLNF_AUs.txt'.format(train_u), sep = ', ')
-    au_file_tmp_mean = au_file_tmp.iloc[:, -22:].mean(axis=0)
-    au_file_tmp_std = au_file_tmp.iloc[:, -22:].std(axis=0)
+    #au_file_tmp_mean = au_file_tmp.iloc[:, -22:].mean(axis=0)
+    #au_file_tmp_std = au_file_tmp.iloc[:, -22:].std(axis=0)
     #print(type(au_file_tmp))
     au_file_len = len(au_file_tmp)
     au_score = train_PHQ8B['PHQ8_Score'].iloc[idx]
@@ -104,7 +111,7 @@ for idx, train_u in enumerate(train_user_id):
      # calculate the std of each column
     # print("mean", au_file_tmp_mean)
     # print("std", au_file_tmp_std)
-    concate  = pd.concat([au_file_tmp_mean, au_file_tmp_std], axis=0)
+    #concate  = pd.concat([au_file_tmp_mean, au_file_tmp_std], axis=0)
     #au_file.append(concate)
     au_file.append(au_file_tmp[['confidence', 'success', 'AU01_r', 'AU02_r', 'AU04_r', 'AU05_r', 'AU06_r', 'AU09_r', 'AU10_r', 'AU12_r', 'AU14_r', 'AU15_r', 'AU17_r', 'AU20_r', 'AU25_r', 'AU26_r', 'AU04_c', 'AU12_c', 'AU15_c', 'AU23_c', 'AU28_c', 'AU45_c']])  
                                                                
@@ -112,7 +119,7 @@ for idx, train_u in enumerate(train_user_id):
 
 for idx, test_u in enumerate(test_user_id): 
     #depending on the file use different seperators
-    au_file_test_tmp = pd.read_csv(path+'{}_CLNF_AUs.txt'.format(train_u), sep = ', ')
+    au_file_test_tmp = pd.read_csv(path+'{}_CLNF_AUs.txt'.format(test_u), sep = ', ')
     au_file_test_tmp_mean = au_file_test_tmp.iloc[:, -22:].mean(axis=0)
     au_file_test_tmp_std = au_file_test_tmp.iloc[:, -22:].std(axis=0)
     #print("is au tmp test any na:", pd.isna(au_file_test_tmp).any())
@@ -140,7 +147,10 @@ PHQ_score_test_R = np.reshape(PHQ_score_test_array,(-1,1))
 au_file = pd.concat(au_file, axis=0)    
 au_file_test = pd.concat(au_file_test, axis=0)    
 AU_indexes = np.array(AU_indexes)
+AU_indexes_for_sum = AU_indexes[1:]-AU_indexes[:-1]
+AU_indexes_for_sum = np.reshape(AU_indexes_for_sum, (-1,1))
 
+print("AU indexes for sum:", AU_indexes_for_sum)
 #test = np.array(test_PHQ8B)
 #print("is au any na:", pd.isna(au_file).any())
 #print("is au test any na:", pd.isna(au_file_test).any())
@@ -152,37 +162,58 @@ au_file_test_transformed = scaler.transform(au_file_test)
 
 ###NOTE If an error occurs after a model is trained comment out model.fit(x,y) and just uncomment modelname2 and use that predict the test data
 
-print("RFC Training and Prediction...")
+print("Loading RFC Model...")
 #Training a predicting Randomn Forest classifier
 regr = RandomForestClassifier(max_depth=2, random_state=0)              
 #trainregr = regr.fit(au_file_transformed, PHQ_score_array) 
 #joblib.dump(regr, "RFC model") 
 regr2 = joblib.load("RFC Model")
-print("RFC model loaded, predicting...")
+#print("Trained RFC model loaded, predicting...")
 predictionRegr = regr2.predict(au_file_test_transformed) 
+#print("Prediction Rfc:", predictionRegr)
 #print("prediction rfc:", predictionRegr)
 #print("AU_indexes minus 1", AU_indexes[:-1])  
-predictionRegrAVG = np.add.reduceat(predictionRegr,AU_indexes[:-1],0).reshape(-1,1)
+predictionRegrSum = np.add.reduceat(predictionRegr,AU_indexes[:-1],0).reshape(-1,1)
+print("Prediction RFC Sum shape",predictionRegrSum.shape)
+predictionRegrAVG = predictionRegrSum/AU_indexes_for_sum
+#print("Predict RFC AVG:",predictionRegrAVG)
 predictionRegr_3BT = est.transform(predictionRegrAVG)
 predictionRegr_2BT = est2.transform(predictionRegrAVG)
 predictprobRFC = regr2.predict_proba(au_file_test)
-predictprobRFC = np.array(predictprobRFC,dtype='float64')
-print("Predict Probability RFC:", predictprobRFC)
+#print("Predict Probability RFC:", predictprobRFC)
 print("---RFC Training and Prediction Done :)---")
 #print("############Random Forest Classifier Metrics############", file=open('output.txt', 'a'))
 #metrics for regression
-rfcauc2 = np.add.reduceat(predictprobRFC, est2.bin_edges_,1)
-rfcauc2 = rfcauc2[:,:-1]
-rfcauc3 = np.add.reduceat(predictprobRFC, est.bin_edges_,1)
-rfcauc3 = rfcauc3[:,:-1]
-regrROC3rfc = roc_auc_score(groundtruth, rfcauc3 , multi_class='ovr')
-regrROC2rfc = roc_auc_score(groundtruth, rfcauc2)
+
+rfcauc2instances = np.add.reduceat(predictprobRFC, [ 0., 10., 20.][:-1],1)
+#print("rfc auc 2 instances shape", rfcauc2instances.shape)
+#print("rfc auc 2 instances ", rfcauc2instances)
+
+rfcauc2sum = np.add.reduceat(rfcauc2instances,AU_indexes[:-1],0)
+#print("rfc auc 2 sum shape", rfcauc2sum.shape)
+#print("rfc auc 2 sum", rfcauc2sum)
+
+rfcauc2 = rfcauc2sum/AU_indexes_for_sum
+rfcauc2 = rfcauc2
+
+#rfcauc2 = rfcauc2[:,:-1]
+
+rfcauc3instances = np.add.reduceat(predictprobRFC, [ 0.,  6.66666667, 13.33333333, 20.][:-1],1)
+rfcauc3sum = np.add.reduceat(rfcauc3instances,AU_indexes[:-1],0)
+rfcauc3 = rfcauc3sum/AU_indexes_for_sum
+
+print("groundtruth2(y_true) shape:", groundtruth2.shape)
+#print("rfcauc3(y_score):",rfcauc3)
+print("rfcauc2(y_score) shape:",rfcauc2.shape)
+
+regrROC3rfc = roc_auc_score(groundtruth, rfcauc3, multi_class='ovr')
+regrROC2rfc = roc_auc_score(groundtruth2, rfcauc2, multi_class='ovr')
 accuracy3regr = accuracy_score(groundtruth, predictionRegr_3BT)
-accuracy2regr = accuracy_score(groundtruth, predictionRegr_2BT)
+accuracy2regr = accuracy_score(groundtruth2, predictionRegr_2BT)
 f13regr = f1_score(groundtruth, predictionRegr_3BT)
-f12regr = f1_score(groundtruth, predictionRegr_2BT)
+f12regr = f1_score(groundtruth2, predictionRegr_2BT)
 tn3regr, fp3regr, fn3regr, tp3regr = confusion_matrix(groundtruth, predictionRegr_3BT).ravel()
-tn2regr, fp2regr, fn2regr, tp2regr = confusion_matrix(groundtruth, predictionRegr_2BT).ravel()
+tn2regr, fp2regr, fn2regr, tp2regr = confusion_matrix(groundtruth2, predictionRegr_2BT).ravel()
 print("ROC AUC(3bins):", regrROC3rfc, file=open('output.txt', 'a'))
 print("ROC AUC(2bins):", regrROC2rfc, file=open('output.txt', 'a'))
 print("Accuracy (3bins):", accuracy3regr, file=open('output.txt', 'a'))
@@ -211,13 +242,13 @@ print("############SVM Metrics############", file=open('output.txt', 'a'))
 svmauc2 = np.add.reduceat(predictprobSVM, est2.bin_edges_,1)[:,:-1]
 svmauc3 = np.add.reduceat(predictprobSVM, est.bin_edges_,1)[:,:-1]
 regrROC3svm = roc_auc_score(groundtruth, svmauc3, multi_class='ovr')
-regrROC2svm = roc_auc_score(groundtruth, svmauc2)
+regrROC2svm = roc_auc_score(groundtruth2, svmauc2)
 accuracy3svm = accuracy_score(groundtruth, predictionRegr_3BT)
-accuracy2svm = accuracy_score(groundtruth, predictionRegr_2BT)
+accuracy2svm = accuracy_score(groundtruth2, predictionRegr_2BT)
 f13svm = f1_score(groundtruth, predictionRegr_3BT)
-f12svm = f1_score(groundtruth, predictionRegr_2BT)
+f12svm = f1_score(groundtruth2, predictionRegr_2BT)
 tn3svm, fp3svm, fn3svm, tp3svm = confusion_matrix(groundtruth, predictionRegr_3BT).ravel()
-tn2svm, fp2svm, fn2svm, tp2svm = confusion_matrix(groundtruth, predictionRegr_2BT).ravel()
+tn2svm, fp2svm, fn2svm, tp2svm = confusion_matrix(groundtruth2, predictionRegr_2BT).ravel()
 print("ROC AUC(3bins):", regrROC3svm, file=open('output.txt', 'a'))
 print("ROC AUC(2bins):", regrROC2svm, file=open('output.txt', 'a'))
 print("Accuracy (3bins):", accuracy3svm, file=open('output.txt', 'a'))
@@ -253,13 +284,13 @@ print("############XGBoost Metrics############", file=open('output.txt', 'a'))
 xgbauc2 = np.add.reduceat(predictprobXGB, est2.bin_edges_,1)[:,:-1]
 xgbauc3 = np.add.reduceat(predictprobXGB, est.bin_edges_,1)[:,:-1]
 regrROC3xgb = roc_auc_score(groundtruth, xgbauc3,  multi_class='ovr')
-regrROC2xgb = roc_auc_score(groundtruth, xgbauc2)
+regrROC2xgb = roc_auc_score(groundtruth2, xgbauc2)
 accuracy3xgb = accuracy_score(groundtruth, predictionRegr_3BT)
-accuracy2xgb = accuracy_score(groundtruth, predictionRegr_2BT)
+accuracy2xgb = accuracy_score(groundtruth2, predictionRegr_2BT)
 f13xgb = f1_score(groundtruth, predictionRegr_3BT)
-f12xgb = f1_score(groundtruth, predictionRegr_2BT)
+f12xgb = f1_score(groundtruth2, predictionRegr_2BT)
 tn3xgb, fp3xgb, fn3xgb, tp3xgb = confusion_matrix(groundtruth, predictionRegr_3BT).ravel()
-tn2xgb, fp2xgb, fn2xgb, tp2xgb = confusion_matrix(groundtruth, predictionRegr_2BT).ravel()
+tn2xgb, fp2xgb, fn2xgb, tp2xgb = confusion_matrix(groundtruth2, predictionRegr_2BT).ravel()
 print("ROC AUC(3bins):", regrROC3xgb, file=open('output.txt', 'a'))
 print("ROC AUC(2bins):", regrROC2xgb, file=open('output.txt', 'a'))
 print("Accuracy (3bins):", accuracy3xgb, file=open('output.txt', 'a'))
@@ -294,13 +325,13 @@ print("---Naive Bayes Training and Prediction Done :)---")
 #metrics for GNB
 print("############Naive Bayes Metrics############", file=open('output.txt', 'a'))
 regrROC3gnb = roc_auc_score(groundtruth, gnbauc3,  multi_class='ovr')
-regrROC2gnb = roc_auc_score(groundtruth, gnbauc2)
+regrROC2gnb = roc_auc_score(groundtruth2, gnbauc2)
 accuracygnb = accuracy_score(groundtruth, predictionGNB_3BT)
-accuracy2gnb = accuracy_score(groundtruth, predictionGNB_2BT)
+accuracy2gnb = accuracy_score(groundtruth2, predictionGNB_2BT)
 f13gnb = f1_score(groundtruth, predictionGNB_3BT)
-f12gnb = f1_score(groundtruth, predictionGNB_2BT)
+f12gnb = f1_score(groundtruth2, predictionGNB_2BT)
 tn3gnb, fp3gnb, fn3gnb, tp3gnb = confusion_matrix(groundtruth, predictionGNB_3BT).ravel()
-tn2gnb, fp2gnb, fn2gnb, tp2gnb = confusion_matrix(groundtruth, predictionGNB_2BT).ravel()
+tn2gnb, fp2gnb, fn2gnb, tp2gnb = confusion_matrix(groundtruth2, predictionGNB_2BT).ravel()
 print("ROC AUC(3bins):", regrROC3gnb, file=open('output.txt', 'a'))
 print("ROC AUC(2bins):", regrROC2gnb, file=open('output.txt', 'a'))
 print("Accuracy (3bins):", accuracy3xgb, file=open('output.txt', 'a'))
