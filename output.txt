@@ -1,2 +1,13 @@
 
 ############Random Forest Classifier Metrics############
+ROC AUC(3bins): 0.5269119043628847
+ROC AUC(2bins): 0.5833333333333334
+Accuracy (3bins): 0.5142857142857142
+Accuracy (2bins): 0.6571428571428571
+F1-Score (3bins): 0.22641509433962262
+F1-Score (2bins): 0.0
+Confusion Matrix (3bins): [18  0  0  9  0  0  8  0  0]
+True Positive (2bins): 0
+Flase Positive (2bins): 0
+True Negative (2bins): 23
+False Negative (2bins): 12
