@@ -11,6 +11,7 @@ from sklearn import svm
 from sklearn.metrics import accuracy_score, f1_score, confusion_matrix, roc_auc_score
 from sklearn.linear_model import LogisticRegression
 from sklearn.utils import multiclass
+from sklearn.ensemble import BaggingClassifier
 import xgboost as xgb                         
 import joblib  
 
@@ -136,7 +137,7 @@ for idx, test_u in enumerate(test_user_id):
     PHQ_score_test.extend(PHQ_score_test_tmp)
     concate  = pd.concat([twoD_file_test_tmp_mean, twoD_file_test_tmp_std], axis=1)
     #au_file_test.append(concate)
-    twoD_file_test.append(twoD_file_tmp[['confidence', 'success', 'x0', 'x1', 'x2', 'x3', 'x4', 'x5', 'x6', 'x7', 'x8', 'x9', 'x10', 'x11', 'x12', 'x13', 'x14', 'x15', 'x16', 'x17', 'x18', 'x19', 'x20', 'x21', 'x22', 'x23', 'x24', 'x25', 'x26', 'x27', 'x28', 'x29', 'x30', 'x31', 'x32', 'x33', 'x34', 'x35', 'x36', 'x37', 'x38', 'x39', 'x40', 'x41', 'x42', 'x43', 'x44', 'x45', 'x46', 'x47', 'x48', 'x49', 'x50', 'x51', 'x52', 'x53', 'x54', 'x55', 'x56', 'x57', 'x58', 'x59', 'x60', 'x61', 'x62', 'x63', 'x64', 'x65', 'x66', 'x67', 'y0', 'y1', 'y2', 'y3', 'y4', 'y5', 'y6', 'y7', 'y8', 'y9', 'y10', 'y11', 'y12', 'y13', 'y14', 'y15', 'y16', 'y17', 'y18', 'y19', 'y20', 'y21', 'y22', 'y23', 'y24', 'y25', 'y26', 'y27', 'y28', 'y29', 'y30', 'y31', 'y32', 'y33', 'y34', 'y35', 'y36', 'y37', 'y38', 'y39', 'y40', 'y41', 'y42', 'y43', 'y44', 'y45', 'y46', 'y47', 'y48', 'y49', 'y50', 'y51', 'y52', 'y53', 'y54', 'y55', 'y56', 'y57', 'y58', 'y59', 'y60', 'y61', 'y62', 'y63', 'y64', 'y65', 'y66', 'y67']])
+    twoD_file_test.append(twoD_file_test_tmp[['confidence', 'success', 'x0', 'x1', 'x2', 'x3', 'x4', 'x5', 'x6', 'x7', 'x8', 'x9', 'x10', 'x11', 'x12', 'x13', 'x14', 'x15', 'x16', 'x17', 'x18', 'x19', 'x20', 'x21', 'x22', 'x23', 'x24', 'x25', 'x26', 'x27', 'x28', 'x29', 'x30', 'x31', 'x32', 'x33', 'x34', 'x35', 'x36', 'x37', 'x38', 'x39', 'x40', 'x41', 'x42', 'x43', 'x44', 'x45', 'x46', 'x47', 'x48', 'x49', 'x50', 'x51', 'x52', 'x53', 'x54', 'x55', 'x56', 'x57', 'x58', 'x59', 'x60', 'x61', 'x62', 'x63', 'x64', 'x65', 'x66', 'x67', 'y0', 'y1', 'y2', 'y3', 'y4', 'y5', 'y6', 'y7', 'y8', 'y9', 'y10', 'y11', 'y12', 'y13', 'y14', 'y15', 'y16', 'y17', 'y18', 'y19', 'y20', 'y21', 'y22', 'y23', 'y24', 'y25', 'y26', 'y27', 'y28', 'y29', 'y30', 'y31', 'y32', 'y33', 'y34', 'y35', 'y36', 'y37', 'y38', 'y39', 'y40', 'y41', 'y42', 'y43', 'y44', 'y45', 'y46', 'y47', 'y48', 'y49', 'y50', 'y51', 'y52', 'y53', 'y54', 'y55', 'y56', 'y57', 'y58', 'y59', 'y60', 'y61', 'y62', 'y63', 'y64', 'y65', 'y66', 'y67']])
     # print("train_u:" , train_u) 
     # print("au_file:" , au_file)                                                             
 
@@ -152,9 +153,9 @@ twoD_indexes = np.array(twoD_indexes)
 twoD_indexes_for_sum = twoD_indexes[1:]-twoD_indexes[:-1]
 twoD_indexes_for_sum = np.reshape(twoD_indexes_for_sum, (-1,1))
 
-print("2D indexes for sum:", twoD_indexes_for_sum)
-print("2D indexes for sum shape:", twoD_indexes_for_sum.shape)
-print("2D indexes for sum shape -5:", twoD_indexes_for_sum[:-5].shape)
+#print("2D indexes for sum:", twoD_indexes_for_sum)
+#print("2D indexes for sum shape:", twoD_indexes_for_sum.shape)
+#print("2D indexes for sum shape -5:", twoD_indexes_for_sum[:-5].shape)
 
 
 #test = np.array(test_PHQ8B)
@@ -168,50 +169,56 @@ twoD_file_test_transformed = scaler.transform(twoD_file_test)
 
 ###NOTE If an error occurs after a model is trained comment out model.fit(x,y) and just uncomment modelname2 and use that predict the test data
 
-print("Loading RFC Model...")
-#Training a predicting Randomn Forest classifier
-#regr = RandomForestClassifier(max_depth=2, random_state=0)              
-#trainregr = regr.fit(au_file_transformed, PHQ_score_array) 
-#joblib.dump(regr, "RFC Model 2D Features") 
-regr2 = joblib.load("RFC Model 2D Features")
-predictionRegr = regr2.predict(twoD_file_test_transformed) 
-print("Prediction RFC ",predictionRegr)
-print("Prediction RFC shape",predictionRegr.shape)
-print("Prediction 2D Features indexes shape",twoD_indexes[:-1])
-print("Prediction 2D Features shape",twoD_indexes[:-1].shape)
+# print("training RFC Model...")
+# #Training a predicting Randomn Forest classifier
+# #regr = RandomForestClassifier(max_depth=2, random_state=0)              
+# #trainregr = regr.fit(twoD_file_transformed, PHQ_score_array) 
+# #joblib.dump(regr, "RFC Model 2D Points") 
+# regr2 = joblib.load("RFC Model 2D Points")
+# #print("is 2d test any nan:", np.nan_to_num(twoD_file_test_transformed))
+# #print("is 2d test any inf:", np.nan_to_num(twoD_file_test_transformed))
+# #print("2d file test transformed:", twoD_file_test_transformed)
 
-predictionRegrSum = np.add.reduceat(predictionRegr,twoD_indexes[:-1],0).reshape(-1,1)
-#print("Prediction RFC Sum shape",predictionRegrSum.shape)
-predictionRegrAVG = predictionRegrSum/twoD_indexes_for_sum
-predictionRegr_3BT = est.transform(predictionRegrAVG)
-predictionRegr_2BT = est2.transform(predictionRegrAVG)
-predictprobRFC = regr2.predict_proba(twoD_file_test)
-print("---RFC Training and Prediction Done :)---")
 
-#print("############Random Forest Classifier Metrics############"
-#print("############2D Features Metrics############", file=open('output.txt', 'a'))
-#print("############RFC Metrics############", file=open('output.txt', 'a'))
 
-rfcauc2instances = np.add.reduceat(predictprobRFC, [ 0., 10., 20.][:-1],1)
-rfcauc2sum = np.add.reduceat(rfcauc2instances,twoD_indexes[:-1],0)
-rfcauc2 = rfcauc2sum/twoD_indexes_for_sum
-rfcauc2 = rfcauc2[:,1]
-rfcauc3instances = np.add.reduceat(predictprobRFC, [ 0.,  6.66666667, 13.33333333, 20.][:-1],1)
-rfcauc3sum = np.add.reduceat(rfcauc3instances,twoD_indexes[:-6],0)
-rfcauc3 = rfcauc3sum/twoD_indexes_for_sum
-print("rfcauc3:", rfcauc3)
-print("rfcauc2:", rfcauc2)
+# predictionRegr = regr2.predict(np.nan_to_num(twoD_file_test_transformed))
+# print("Prediction RFC ",predictionRegr)
+# print("Prediction RFC shape",predictionRegr.shape)
+# print("Prediction 2D Features indexes shape",twoD_indexes[:-1])
+# print("Prediction 2D Features shape",twoD_indexes[:-1].shape)
 
-#regrROC3rfc = roc_auc_score(groundtruth, rfcauc3, multi_class='ovr')
-#regrROC2rfc = roc_auc_score(groundtruth2, rfcauc2)
-accuracy3regr = accuracy_score(groundtruth, predictionRegr_3BT)
-accuracy2regr = accuracy_score(groundtruth2, predictionRegr_2BT)
-f13regr = f1_score(groundtruth, predictionRegr_3BT, average='macro')
-f12regr = f1_score(groundtruth2, predictionRegr_2BT)
-confusionmatrix3bins = confusion_matrix(groundtruth, predictionRegr_3BT).ravel()
-tn2regr, fp2regr, fn2regr, tp2regr = confusion_matrix(groundtruth2, predictionRegr_2BT).ravel()
-#print("ROC AUC(3bins):", regrROC3rfc, file=open('output.txt', 'a'))
-#print("ROC AUC(2bins):", regrROC2rfc, file=open('output.txt', 'a'))
+# predictionRegrSum = np.add.reduceat(predictionRegr,twoD_indexes[:-1],0).reshape(-1,1)
+# #print("Prediction RFC Sum shape",predictionRegrSum.shape)
+# predictionRegrAVG = predictionRegrSum/twoD_indexes_for_sum
+# predictionRegr_3BT = est.transform(predictionRegrAVG)
+# predictionRegr_2BT = est2.transform(predictionRegrAVG)
+# predictprobRFC = regr2.predict_proba(np.nan_to_num(twoD_file_test))
+# print("---RFC Training and Prediction Done :)---")
+
+# print("############Random Forest Classifier Metrics############")
+# print("############2D Features Metrics############", file=open('output.txt', 'a'))
+# print("############RFC Metrics############", file=open('output.txt', 'a'))
+
+# rfcauc2instances = np.add.reduceat(predictprobRFC, [ 0., 10., 20.][:-1],1)
+# rfcauc2sum = np.add.reduceat(rfcauc2instances,twoD_indexes[:-1],0)
+# rfcauc2 = rfcauc2sum/twoD_indexes_for_sum
+# rfcauc2 = rfcauc2[:,1]
+# rfcauc3instances = np.add.reduceat(predictprobRFC, [ 0.,  6.66666667, 13.33333333, 20.][:-1],1)
+# rfcauc3sum = np.add.reduceat(rfcauc3instances,twoD_indexes[:-1],0)
+# rfcauc3 = rfcauc3sum/twoD_indexes_for_sum
+# print("rfcauc3:", rfcauc3)
+# print("rfcauc2:", rfcauc2)
+
+# regrROC3rfc = roc_auc_score(groundtruth, rfcauc3, multi_class='ovr')
+# regrROC2rfc = roc_auc_score(groundtruth2, rfcauc2)
+# accuracy3regr = accuracy_score(groundtruth, predictionRegr_3BT)
+# accuracy2regr = accuracy_score(groundtruth2, predictionRegr_2BT)
+# f13regr = f1_score(groundtruth, predictionRegr_3BT, average='macro')
+# f12regr = f1_score(groundtruth2, predictionRegr_2BT)
+# confusionmatrix3bins = confusion_matrix(groundtruth, predictionRegr_3BT).ravel()
+# tn2regr, fp2regr, fn2regr, tp2regr = confusion_matrix(groundtruth2, predictionRegr_2BT).ravel()
+# print("ROC AUC(3bins):", regrROC3rfc, file=open('output.txt', 'a'))
+# print("ROC AUC(2bins):", regrROC2rfc, file=open('output.txt', 'a'))
 # print("Accuracy (3bins):", accuracy3regr, file=open('output.txt', 'a'))
 # print("Accuracy (2bins):", accuracy2regr, file=open('output.txt', 'a'))
 # print("F1-Score (3bins):", f13regr, file=open('output.txt', 'a'))
@@ -224,111 +231,109 @@ tn2regr, fp2regr, fn2regr, tp2regr = confusion_matrix(groundtruth2, predictionRe
 
 
 
-print("XGBoost Training and Prediction...")
+#print("XGBoost Training and Prediction...")
 #Training and Predicting XGBoost
-xgb_model = xgb.XGBClassifier(tree_method = 'gpu_hist')
-trainxgb = xgb_model.fit(twoD_file_transformed, PHQ_score_array)
-joblib.dump(xgb_model, "XGB model 2D") 
-#xgb_model2 = joblib.load("XGB Model")
-print("XGB model saved")
+#xgb_model = xgb.XGBClassifier(tree_method = 'gpu_hist')
+#trainxgb = xgb_model.fit(twoD_file_transformed, PHQ_score_array)
+#joblib.dump(xgb_model, "XGB model 2D") 
+#xgb_model2 = joblib.load("XGB Model 2D")
+#print("XGB model saved")
 
-predictionXGB = xgb_model.predict(twoD_file_test_transformed)
-predictionXGBsum = np.add.reduceat(predictionXGB,twoD_indexes[:-1],0).reshape(-1,1)
-predictionXGBAVG = predictionXGBsum/twoD_indexes_for_sum
-predictionXGB_3BT = est.transform(predictionXGBAVG)
-predictionXGB_2BT = est2.transform(predictionXGBAVG)
-predictprobXGB = xgb_model.predict_proba(twoD_file_test)
-print("---XGBoost Training and Prediction Done :)---")
+#redictionXGB = xgb_model2.predict(twoD_file_test_transformed)
+#predictionXGBsum = np.add.reduceat(predictionXGB,twoD_indexes[:-1],0).reshape(-1,1)
+#predictionXGBAVG = predictionXGBsum/twoD_indexes_for_sum
+#predictionXGB_3BT = est.transform(predictionXGBAVG)
+#predictionXGB_2BT = est2.transform(predictionXGBAVG)
+#predictprobXGB = xgb_model2.predict_proba(twoD_file_test)
+#print("---XGBoost Training and Prediction Done :)---")
 
 #XGB metrics
-print("############XGBoost Metrics############", file=open('output.txt', 'a'))
-xgbauc2instances = np.add.reduceat(predictprobXGB, [ 0., 10., 20.][:-1],1)
-xgbauc2sum = np.add.reduceat(xgbauc2instances,twoD_indexes[:-6],0)
-xgbauc2 = xgbauc2sum/twoD_indexes_for_sum
-xgbauc2 = xgbauc2[:,1]
-xgbauc3instances = np.add.reduceat(predictprobXGB, [ 0.,  6.66666667, 13.33333333, 20.][:-1],1)
-xgbauc3sum = np.add.reduceat(xgbauc3instances,twoD_indexes[:-6],0)
-xgbauc3 = xgbauc3sum/twoD_indexes_for_sum
+#print("############XGBoost Metrics############", file=open('output.txt', 'a'))
+#xgbauc2instances = np.add.reduceat(predictprobXGB, [ 0., 10., 20.][:-1],1)
+#xgbauc2sum = np.add.reduceat(xgbauc2instances,twoD_indexes[:-1],0)
+#xgbauc2 = xgbauc2sum/twoD_indexes_for_sum
+#xgbauc2 = xgbauc2[:,1]
+#xgbauc3instances = np.add.reduceat(predictprobXGB, [ 0.,  6.66666667, 13.33333333, 20.][:-1],1)
+#xgbauc3sum = np.add.reduceat(xgbauc3instances,twoD_indexes[:-1],0)
+#xgbauc3 = xgbauc3sum/twoD_indexes_for_sum
 
-#regrROC3xgb = roc_auc_score(groundtruth[:-5], xgbauc3,  multi_class='ovr')
-#regrROC2xgb = roc_auc_score(groundtruth2[:-5], xgbauc2)
-accuracy3xgb = accuracy_score(groundtruth, predictionRegr_3BT)
-accuracy2xgb = accuracy_score(groundtruth2, predictionRegr_2BT)
-f13xgb = f1_score(groundtruth, predictionRegr_3BT, average='macro')
-f12xgb = f1_score(groundtruth2, predictionRegr_2BT)
-xgbconfusionmatrix3bins = confusion_matrix(groundtruth, predictionRegr_3BT).ravel()
-tn2xgb, fp2xgb, fn2xgb, tp2xgb = confusion_matrix(groundtruth2, predictionRegr_2BT).ravel()
+#regrROC3xgb = roc_auc_score(groundtruth, xgbauc3,  multi_class='ovr')
+#regrROC2xgb = roc_auc_score(groundtruth2, xgbauc2)
+#accuracy3xgb = accuracy_score(groundtruth, predictionXGB_3BT)
+#accuracy2xgb = accuracy_score(groundtruth2, predictionXGB_2BT)
+#f13xgb = f1_score(groundtruth, predictionXGB_3BT, average='macro')
+#f12xgb = f1_score(groundtruth2, predictionXGB_2BT)
+#xgbconfusionmatrix3bins = confusion_matrix(groundtruth, predictionXGB_3BT).ravel()
+#tn2xgb, fp2xgb, fn2xgb, tp2xgb = confusion_matrix(groundtruth2, predictionXGB_2BT).ravel()
 #print("ROC AUC(3bins):", regrROC3xgb, file=open('output.txt', 'a'))
 #print("ROC AUC(2bins):", regrROC2xgb, file=open('output.txt', 'a'))
-print("Accuracy (3bins):", accuracy3xgb, file=open('output.txt', 'a'))
-print("Accuracy (2bins):", accuracy2xgb, file=open('output.txt', 'a'))
-print("F1-Score (3bins):", f13xgb, file=open('output.txt', 'a'))
-print("F1-Score (2bins):", f12xgb, file=open('output.txt', 'a'))
-print("Confusion Matrix (3bins):", xgbconfusionmatrix3bins, file=open('output.txt', 'a'))
-print("True Positive (2bins):", tp2xgb, file=open('output.txt', 'a'))
-print("Flase Positive (2bins):", fp2xgb, file=open('output.txt', 'a'))
-print("True Negative (2bins):", tn2xgb, file=open('output.txt', 'a'))
-print("False Negative (2bins):", fn2xgb, file=open('output.txt', 'a'))
+#print("Accuracy (3bins):", accuracy3xgb, file=open('output.txt', 'a'))
+#print("Accuracy (2bins):", accuracy2xgb, file=open('output.txt', 'a'))
+#print("F1-Score (3bins):", f13xgb, file=open('output.txt', 'a'))
+#print("F1-Score (2bins):", f12xgb, file=open('output.txt', 'a'))
+#print("Confusion Matrix (3bins):", xgbconfusionmatrix3bins, file=open('output.txt', 'a'))
+#print("True Positive (2bins):", tp2xgb, file=open('output.txt', 'a'))
+#print("Flase Positive (2bins):", fp2xgb, file=open('output.txt', 'a'))
+#print("True Negative (2bins):", tn2xgb, file=open('output.txt', 'a'))
+#print("False Negative (2bins):", fn2xgb, file=open('output.txt', 'a'))
 
 
-print("Naive Bayes Training and Prediction...")
-gnb = GaussianNB()
-traingnb = gnb.fit(twoD_file_transformed, PHQ_score_array)
-joblib.dump(gnb, "GNB model 2D") 
-#gnb2 = joblib.load("GNB Model")
-print("GNB model saved")
-predictionGNB = gnb.predict(twoD_file_test_transformed)
-predictionGNBSum = np.add.reduceat(predictionRegr,twoD_indexes[:-1],0).reshape(-1,1)
-predictionGNBAVG = predictionGNBSum/twoD_indexes_for_sum
-predictionGNB_3BT = est.transform(predictionGNBAVG)
-predictionGNB_2BT = est2.transform(predictionGNBAVG)
-predictprobGNB = gnb.predict_proba(twoD_file_test)
+#print("Naive Bayes Training and Prediction...")
+#gnb = GaussianNB()
+#traingnb = gnb.fit(twoD_file_transformed, PHQ_score_array)
+#joblib.dump(gnb, "GNB model 2D") 
+#gnb2 = joblib.load("GNB Model 2D")
+#print("GNB model saved")
+#predictionGNB = gnb2.predict(np.nan_to_num(twoD_file_test_transformed))
+#predictionGNBSum = np.add.reduceat(predictionGNB,twoD_indexes[:-1],0).reshape(-1,1)
+#predictionGNBAVG = predictionGNBSum/twoD_indexes_for_sum
+#predictionGNB_3BT = est.transform(predictionGNBAVG)
+#predictionGNB_2BT = est2.transform(predictionGNBAVG)
+#predictprobGNB = gnb2.predict_proba(np.nan_to_num(twoD_file_test))
 
-gnbauc2instances = np.add.reduceat(predictprobGNB, [ 0., 10., 20.][:-1],1)
-gnbauc2sum = np.add.reduceat(gnbauc2instances,twoD_indexes[:-1],0)
-gnbauc2 = gnbauc2sum/twoD_indexes_for_sum
-gnbauc2 = gnbauc2[:,1]
-gnbauc3instances = np.add.reduceat(predictprobGNB, [ 0.,  6.66666667, 13.33333333, 20.][:-1],1)
-gnbauc3sum = np.add.reduceat(gnbauc3instances,twoD_indexes[:-1],0)
-gnbauc3 = gnbauc3sum/twoD_indexes_for_sum
-
-
-print("---Naive Bayes Training and Prediction Done :)---")
+#gnbauc2instances = np.add.reduceat(predictprobGNB, [ 0., 10., 20.][:-1],1)
+#gnbauc2sum = np.add.reduceat(gnbauc2instances,twoD_indexes[:-1],0)
+#gnbauc2 = gnbauc2sum/twoD_indexes_for_sum
+#gnbauc2 = gnbauc2[:,1]
+#gnbauc3instances = np.add.reduceat(predictprobGNB, [ 0.,  6.66666667, 13.33333333, 20.][:-1],1)
+#gnbauc3sum = np.add.reduceat(gnbauc3instances,twoD_indexes[:-1],0)
+#gnbauc3 = gnbauc3sum/twoD_indexes_for_sum
+#print("---Naive Bayes Training and Prediction Done :)---")
 
 #metrics for GNB
-print("############Naive Bayes Metrics############", file=open('output.txt', 'a'))
+#print("############Naive Bayes Metrics############", file=open('output.txt', 'a'))
 #regrROC3gnb = roc_auc_score(groundtruth, gnbauc3,  multi_class='ovr')
 #regrROC2gnb = roc_auc_score(groundtruth2, gnbauc2)
-accuracygnb = accuracy_score(groundtruth, predictionGNB_3BT)
-accuracy2gnb = accuracy_score(groundtruth2, predictionGNB_2BT)
-f13gnb = f1_score(groundtruth, predictionGNB_3BT, average='macro')
-f12gnb = f1_score(groundtruth2, predictionGNB_2BT)
-gnbconfusionmatrix3bins = confusion_matrix(groundtruth, predictionGNB_3BT).ravel()
-tn2gnb, fp2gnb, fn2gnb, tp2gnb = confusion_matrix(groundtruth2, predictionGNB_2BT).ravel()
+#accuracygnb = accuracy_score(groundtruth, predictionGNB_3BT)
+#accuracy2gnb = accuracy_score(groundtruth2, predictionGNB_2BT)
+#f13gnb = f1_score(groundtruth, predictionGNB_3BT, average='macro')
+#f12gnb = f1_score(groundtruth2, predictionGNB_2BT)
+#gnbconfusionmatrix3bins = confusion_matrix(groundtruth, predictionGNB_3BT).ravel()
+#tn2gnb, fp2gnb, fn2gnb, tp2gnb = confusion_matrix(groundtruth2, predictionGNB_2BT).ravel()
 #print("ROC AUC(3bins):", regrROC3gnb, file=open('output.txt', 'a'))
 #print("ROC AUC(2bins):", regrROC2gnb, file=open('output.txt', 'a'))
-print("Accuracy (3bins):", accuracy3xgb, file=open('output.txt', 'a'))
-print("Accuracy (2bins):", accuracy2gnb, file=open('output.txt', 'a'))
-print("F1-Score (3bins):", f13gnb, file=open('output.txt', 'a'))
-print("F1-Score (2bins):", f12gnb, file=open('output.txt', 'a'))
-print("Confusion Matrix (3bins):", gnbconfusionmatrix3bins, file=open('output.txt', 'a'))
-print("True Positive (2bins):", tp2gnb, file=open('output.txt', 'a'))
-print("Flase Positive (2bins):", fp2gnb, file=open('output.txt', 'a'))
-print("True Negative (2bins):", tn2gnb, file=open('output.txt', 'a'))
-print("False Negative (2bins):", fn2gnb, file=open('output.txt', 'a'))
+#print("Accuracy (3bins):", accuracygnb, file=open('output.txt', 'a'))
+#print("Accuracy (2bins):", accuracy2gnb, file=open('output.txt', 'a'))
+#print("F1-Score (3bins):", f13gnb, file=open('output.txt', 'a'))
+#print("F1-Score (2bins):", f12gnb, file=open('output.txt', 'a'))
+#print("Confusion Matrix (3bins):", gnbconfusionmatrix3bins, file=open('output.txt', 'a'))
+#print("True Positive (2bins):", tp2gnb, file=open('output.txt', 'a'))
+#print("Flase Positive (2bins):", fp2gnb, file=open('output.txt', 'a'))
+# print("True Negative (2bins):", tn2gnb, file=open('output.txt', 'a'))
+# print("False Negative (2bins):", fn2gnb, file=open('output.txt', 'a'))
 
 print("SVM Training and Prediction...")
-clf=svm.LinearSVC()
-trainclf = clf.fit(twoD_file_transformed, PHQ_score_array)
-joblib.dump(clf, "SVM Model 2D") 
-#clf2 = joblib.load("SVM Model")
-print("SVM model saved")
-predictionSVM = clf.predict(twoD_file_test_transformed)  
+#clf=svm.LinearSVC()
+#trainclf = clf.fit(twoD_file_transformed, PHQ_score_array)
+#joblib.dump(clf, "SVM Model 2D") 
+clf2 = joblib.load("SVM Model 2D")
+print("SVM model loaded")
+predictionSVM = clf2.predict(np.nan_to_num(twoD_file_test_transformed))  
 predictionSVMSUM =  np.add.reduceat(predictionSVM,twoD_indexes[:-1],0).reshape(-1,1)
 predictionSVMAVG = predictionSVMSUM/twoD_indexes_for_sum
 predictionSVM_3BT = est.transform(predictionSVMAVG)
 predictionSVM_2BT = est2.transform(predictionSVMAVG)
-predictprobSVM = clf.predict_proba(twoD_file_test)
+predictprobSVM = clf2._predict_proba_lr(np.nan_to_num(twoD_file_test))
 print("---SVM Training and Prediction Done :)---")
 
 print("############SVM Metrics############", file=open('output.txt', 'a'))
@@ -342,12 +347,12 @@ svmauc3 = svmauc3sum/twoD_indexes_for_sum
 
 regrROC3svm = roc_auc_score(groundtruth, svmauc3, multi_class='ovr')
 regrROC2svm = roc_auc_score(groundtruth2, svmauc2)
-accuracy3svm = accuracy_score(groundtruth, predictionRegr_3BT)
-accuracy2svm = accuracy_score(groundtruth2, predictionRegr_2BT)
-f13svm = f1_score(groundtruth, predictionRegr_3BT, average='macro')
-f12svm = f1_score(groundtruth2, predictionRegr_2BT)
-svmconfusionmatrix3bins = confusion_matrix(groundtruth, predictionRegr_3BT).ravel()
-tn2svm, fp2svm, fn2svm, tp2svm = confusion_matrix(groundtruth2, predictionRegr_2BT).ravel()
+accuracy3svm = accuracy_score(groundtruth, predictionSVM_3BT)
+accuracy2svm = accuracy_score(groundtruth2, predictionSVM_2BT)
+f13svm = f1_score(groundtruth, predictionSVM_3BT, average='macro')
+f12svm = f1_score(groundtruth2, predictionSVM_2BT)
+svmconfusionmatrix3bins = confusion_matrix(groundtruth, predictionSVM_3BT).ravel()
+tn2svm, fp2svm, fn2svm, tp2svm = confusion_matrix(groundtruth2, predictionSVM_2BT).ravel()
 print("ROC AUC(3bins):", regrROC3svm, file=open('output.txt', 'a'))
 print("ROC AUC(2bins):", regrROC2svm, file=open('output.txt', 'a'))
 print("Accuracy (3bins):", accuracy3svm, file=open('output.txt', 'a'))

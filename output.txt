@@ -49,12 +49,51 @@ True Negative (2bins): 23
 False Negative (2bins): 12
 ############2D Features Metrics############
 ############RFC Metrics############
-Accuracy (3bins): 0.5
-Accuracy (2bins): 0.6333333333333333
-F1-Score (3bins): 0.2222222222222222
+ROC AUC(3bins): 0.5086342941735098
+ROC AUC(2bins): 0.2717391304347826
+Accuracy (3bins): 0.5142857142857142
+Accuracy (2bins): 0.6571428571428571
+F1-Score (3bins): 0.22641509433962262
 F1-Score (2bins): 0.0
-Confusion Matrix (3bins): [15  0  0  8  0  0  7  0  0]
+Confusion Matrix (3bins): [18  0  0  9  0  0  8  0  0]
 True Positive (2bins): 0
 Flase Positive (2bins): 0
-True Negative (2bins): 19
-False Negative (2bins): 11
+True Negative (2bins): 23
+False Negative (2bins): 12
+
+############XGBoost Metrics############
+ROC AUC(3bins): 0.46667783922685885
+ROC AUC(2bins): 0.3586956521739131
+Accuracy (3bins): 0.4
+Accuracy (2bins): 0.6857142857142857
+F1-Score (3bins): 0.26178861788617885
+F1-Score (2bins): 0.26666666666666666
+Confusion Matrix (3bins): [12  5  1  7  2  0  4  4  0]
+True Positive (2bins): 2
+Flase Positive (2bins): 1
+True Negative (2bins): 22
+False Negative (2bins): 10
+############Naive Bayes Metrics############
+ROC AUC(3bins): 0.4567621920563097
+ROC AUC(2bins): 0.34057971014492755
+Accuracy (3bins): 0.37142857142857144
+Accuracy (2bins): 0.5714285714285714
+F1-Score (3bins): 0.364957264957265
+F1-Score (2bins): 0.5945945945945945
+Confusion Matrix (3bins): [4 6 8 2 3 4 0 2 6]
+True Positive (2bins): 11
+Flase Positive (2bins): 14
+True Negative (2bins): 9
+False Negative (2bins): 1
+############SVM Metrics############
+ROC AUC(3bins): 0.590085749399475
+ROC AUC(2bins): 0.5905797101449276
+Accuracy (3bins): 0.45714285714285713
+Accuracy (2bins): 0.6285714285714286
+F1-Score (3bins): 0.22222222222222224
+F1-Score (2bins): 0.0
+Confusion Matrix (3bins): [16  1  1  9  0  0  5  3  0]
+True Positive (2bins): 0
+Flase Positive (2bins): 1
+True Negative (2bins): 22
+False Negative (2bins): 12
