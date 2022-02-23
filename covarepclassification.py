@@ -116,7 +116,7 @@ PHQ_score_R = np.reshape(PHQ_score_array,(-1,1))
 PHQ_score_test_array = np.array(PHQ_score_test)
 PHQ_score_test_R = np.reshape(PHQ_score_test_array,(-1,1))
 covarep_file = pd.concat(covarep_file, axis=0)    
-covarep_file_test = pd.concat(covarep_file_test, axis=0)    
+covarep_file_test = pd.concat(covarep_file_test, axis=0)  
 covarep_indexes = np.array(covarep_indexes)
 covarep_indexes_for_sum = covarep_indexes[1:]-covarep_indexes[:-1]
 covarep_indexes_for_sum = np.reshape(covarep_indexes_for_sum, (-1,1))
@@ -136,7 +136,7 @@ covarep_file_test_transformed = scaler.transform(covarep_file_test)
 
 print("training RFC Model...")
 #Training a predicting Randomn Forest classifier
-regr = RandomForestClassifier(max_depth=2, random_state=0)              
+regr = RandomForestClassifier(max_depth=2, random_state=0, n_estimators=10)              
 trainregr = regr.fit(covarep_file_transformed, PHQ_score_array) 
 joblib.dump(regr, "RFC Model COVAREP") 
 #regr2 = joblib.load("RFC Model 3D Points")
@@ -334,3 +334,50 @@ print("False Negative (2bins):", fn2svm, file=open('output.txt', 'a'))
 
 print("Finished lets GOOOOOOOOOOOOOO")
     
+
+# File "c:\Users\reeli\OneDrive\Desktop\MQP\Depression-Detection\covarepclassification.py", line 119, in <module>    
+#  covarep_file = covarep_file.astype('uint8')
+#   File "C:\Users\reeli\AppData\Local\Programs\Python\Python310\lib\site-packages\pandas\core\generic.py", line 5815, in astype
+#     new_data = self._mgr.astype(dtype=dtype, copy=copy, errors=errors)
+#   File "C:\Users\reeli\AppData\Local\Programs\Python\Python310\lib\site-packages\pandas\core\internals\managers.py", line 418, in astype
+#     return self.apply("astype", dtype=dtype, copy=copy, errors=errors)
+#   File "C:\Users\reeli\AppData\Local\Programs\Python\Python310\lib\site-packages\pandas\core\internals\managers.py", line 327, in apply
+#     applied = getattr(b, f)(**kwargs)
+#   File "C:\Users\reeli\AppData\Local\Programs\Python\Python310\lib\site-packages\pandas\core\internals\blocks.py", line 591, in astype
+#     new_values = astype_array_safe(values, dtype, copy=copy, errors=errors)
+#   File "C:\Users\reeli\AppData\Local\Programs\Python\Python310\lib\site-packages\pandas\core\dtypes\cast.py", line 1309, in astype_array_safe
+#     new_values = astype_array(values, dtype, copy=copy)
+#   File "C:\Users\reeli\AppData\Local\Programs\Python\Python310\lib\site-packages\pandas\core\dtypes\cast.py", line 1257, in astype_array
+#     values = astype_nansafe(values, dtype, copy=copy)
+#   File "C:\Users\reeli\AppData\Local\Programs\Python\Python310\lib\site-packages\pandas\core\dtypes\cast.py", line 1095, in astype_nansafe
+#     result = astype_nansafe(flat, dtype, copy=copy, skipna=skipna)
+#   File "C:\Users\reeli\AppData\Local\Programs\Python\Python310\lib\site-packages\pandas\core\dtypes\cast.py", line 1174, in astype_nansafe
+#     return lib.astype_intsafe(arr, dtype)
+#   File "pandas\_libs\lib.pyx", line 679, in pandas._libs.lib.astype_intsafe
+# ValueError: invalid literal for int() with base 10: '0,0,0,0,0,0,0,0,0,0,0,-9.7699,1.9065,0.77651,0.398,0.086947,0.20105,0.049624,0.12569,-0.093072,0.096714,-0.087351,-0.018546,-0.064997,0.06286,-0.010583,0.025317,0.006386,-0.060851,0.044437,-0.0054086
+# PS C:\Users\reeli\OneDrive\Desktop\MQP\Depression-Detection>
+
+
+# /cm/local/apps/slurm/var/spool/job2089425/slurm_script: line 14: pip: command not found
+# /cm/local/apps/slurm/var/spool/job2089423/slurm_script: line 15: pip: command not found
+# Traceback (most recent call last):
+#   File "covarepclassification.py", line 23, in <module>
+#     train_list = pd.read_csv('D:\MQP\dataset\DAICWOZ\\train_split_Depression_AVEC2017.csv')
+#   File "/home/peteng/py3.7.6_env_cuda11.1.1/lib/python3.7/site-packages/pandas/util/_decorators.py", line 311, in wrapper
+#     return func(*args, **kwargs)
+#   File "/home/peteng/py3.7.6_env_cuda11.1.1/lib/python3.7/site-packages/pandas/io/parsers/readers.py", line 586, in read_csv
+#     return _read(filepath_or_buffer, kwds)
+#   File "/home/peteng/py3.7.6_env_cuda11.1.1/lib/python3.7/site-packages/pandas/io/parsers/readers.py", line 482, in _read
+#     parser = TextFileReader(filepath_or_buffer, **kwds)
+#   File "/home/peteng/py3.7.6_env_cuda11.1.1/lib/python3.7/site-packages/pandas/io/parsers/readers.py", line 811, in __init__
+#     self._engine = self._make_engine(self.engine)
+#   File "/home/peteng/py3.7.6_env_cuda11.1.1/lib/python3.7/site-packages/pandas/io/parsers/readers.py", line 1040, in _make_engine
+#     return mapping[engine](self.f, **self.options)  # type: ignore[call-arg]
+#   File "/home/peteng/py3.7.6_env_cuda11.1.1/lib/python3.7/site-packages/pandas/io/parsers/c_parser_wrapper.py", line 51, in __init__
+#     self._open_handles(src, kwds)
+#   File "/home/peteng/py3.7.6_env_cuda11.1.1/lib/python3.7/site-packages/pandas/io/parsers/base_parser.py", line 229, in _open_handles
+#     errors=kwds.get("encoding_errors", "strict"),
+#   File "/home/peteng/py3.7.6_env_cuda11.1.1/lib/python3.7/site-packages/pandas/io/common.py", line 707, in get_handle
+#     newline="",
+# FileNotFoundError: [Errno 2] No such file or directory: 'D:\\MQP\\dataset\\DAICWOZ\\train_split_Depression_AVEC2017.csv'
+# ~                                                                                                                            
