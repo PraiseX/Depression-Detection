@@ -27,31 +27,25 @@ class GPS:
     def speedMean(latitude, longitude, timeStamps):
             userSpeed = 0
             meanofSpeed = 0
-            for n in range(1, len(timeStamps)):
-                print("timestamp:", timeStamps)
-                print("timeStamp",  timeStamps[n])
-                print("timestamp n+1:", timeStamps[n+1])
-                print("latitude n+1 type:", latitude[n+1])
-                print("latitude n type:", latitude[n])
-                print("latitude n+1:", longitude[n+1])
-                print("latitude n:", longitude[n])
-
-                userSpeed = numpy.square((float(latitude[n+1]) - float(latitude[n+1]))/(float(timeStamps[n+1])-float(timeStamps[n+1]))) + numpy.square((float(longitude[n]) - float(longitude[n]))/(float(timeStamps[n])-float(timeStamps[n])))
+            for n in range(0, len(timeStamps)-1):
+                userSpeed = numpy.square((float(latitude[n+1]) - float(latitude[n]))/(float(timeStamps[n+1])-float(timeStamps[n]))) + numpy.square((float(longitude[n+1]) - float(longitude[n]))/(float(timeStamps[n+1])-float(timeStamps[n])))
                 meanofSpeed = numpy.sqrt(userSpeed)
                 meanofSpeed+=meanofSpeed
-            return (1/len(timeStamps))*meanofSpeed
+            return (1/len(timeStamps)-1)*meanofSpeed
     
-    def totalDistance(latitude1, longitude1, latitude2, longitude2, timeStamps):
-        for i in range(1, timeStamps):
-            d = numpy.square(latitude2-latitude1) + numpy.square(longitude2+longitude1)
+    def totalDistance(latitude, longitude, timeStamps):
+        avgD = 0
+        for i in range(0, len(timeStamps)-1):
+            d = numpy.square(latitude[i+1]-latitude[i]) + numpy.square(longitude[i+1]+longitude[i])
             avgD = numpy.sqrt(d)
             avgD+=avgD
+        return avgD
     
     #trdef kClusters():
 
     def transitionTime(travelState):
         timeMoving = 0
-        for i in travelState:
-            if travelState.__eq__("moving"):
+        for i in range(0, len(travelState)-1):
+            if travelState[i].__eq__("moving"):
                 timeMoving+=1
-        return timeMoving/len(travelState)
+        return timeMoving/len(travelState)-1

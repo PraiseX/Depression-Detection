@@ -29,19 +29,18 @@ phquserID=np.asarray(phquserID)
 
 
 for i, idx in enumerate(phquserID):
-    gpsFile=pd.read_csv(path+'gps_{}.csv'.format(phquserID[i]))
+    gpsFile=pd.read_csv(path+'gps_{}.csv'.format(phquserID[i]), index_col=False)
     #print("file:", gpsFile)
     userLatitude = gpsFile[['latitude']]
     userLatitude = np.asarray(userLatitude)
-    print("userLatitude: ", userLatitude)
+    #print("userLatitude: ", userLatitude)
     userLongitude = gpsFile[['longitude']]
     userLongitude = np.asarray(userLongitude)
-    timestamps=gpsFile.iloc[:,1]
+    timestamps=gpsFile[['time']]
     timestamps = np.asarray(timestamps)
-    travelState = gpsFile[['time']]
-    print("travelstate: ", np.asarray(travelState))
-    #print("locationVarience:", GPS.locationVariance(userLatitude.flatten('A'), userLongitude.flatten('A')))
-    GPS.speedMean(userLatitude, userLongitude, timestamps)
-    GPS.totalDistance(userLatitude[i], userLongitude[i],
-    userLatitude[i+1], userLongitude[i+1], timestamps)
-    GPS.transitionTime(timestamps)
+    travelState = gpsFile[['travelstate']]
+    #print("travelstate: ", np.asarray(travelState))
+    print("locationVarience for user " + phquserID[i] + ":", GPS.locationVariance(userLatitude.flatten('A'), userLongitude.flatten('A')))
+    print("SpeedMean for user " + phquserID[i] + ":", GPS.speedMean(userLatitude, userLongitude, timestamps))
+    print("Total Distance for user " + phquserID[i] + ":",GPS.totalDistance(userLatitude, userLongitude, timestamps))
+    print("Transistion Time for user " + phquserID[i] + ":",GPS.transitionTime(timestamps))
