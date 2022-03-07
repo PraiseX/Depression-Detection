@@ -4,6 +4,7 @@ import os
 import pandas as pd  
 import glob
 import numpy as np  
+import pickle
 from sklearn.ensemble import RandomForestClassifier 
 from sklearn.naive_bayes import GaussianNB
 from sklearn.linear_model import SGDClassifier
@@ -30,6 +31,7 @@ phquserID=np.asarray(phquserID)
 
 for i, idx in enumerate(phquserID):
     gpsFile=pd.read_csv(path+'gps_{}.csv'.format(phquserID[i]), index_col=False)
+      
     #print("file:", gpsFile)
     userLatitude = gpsFile[['latitude']]
     userLatitude = np.asarray(userLatitude)
@@ -39,8 +41,25 @@ for i, idx in enumerate(phquserID):
     timestamps=gpsFile[['time']]
     timestamps = np.asarray(timestamps)
     travelState = gpsFile[['travelstate']]
-    #print("travelstate: ", np.asarray(travelState))
-    print("locationVarience for user " + phquserID[i] + ":", GPS.locationVariance(userLatitude.flatten('A'), userLongitude.flatten('A')))
-    print("SpeedMean for user " + phquserID[i] + ":", GPS.speedMean(userLatitude, userLongitude, timestamps))
-    print("Total Distance for user " + phquserID[i] + ":",GPS.totalDistance(userLatitude, userLongitude, timestamps))
-    print("Transistion Time for user " + phquserID[i] + ":",GPS.transitionTime(timestamps))
+
+    f = open("locationVarience_" + str(phquserID[i]) + ".txt", 'w')
+
+    #if the array is one row with X amount of columns, it should read a row, convert it to a string, then write the element in the row before moving to the next one, however that doesn't seem to be happening
+    for line in GPS.locationVariance(userLatitude.flatten('A'), userLongitude.flatten('A')):
+        f.write(str(line))
+    f.close
+
+    f = open("speedMean_" + str(phquserID[i]) + ".txt", 'w')
+    for line in GPS.speedMean(userLatitude, userLongitude, timestamps):
+        f.write(str(line))
+    f.close
+
+    f = open("totalDistance_" + str(phquserID[i]) + ".txt", 'w')
+    for line in GPS.totalDistance(userLatitude, userLongitude, timestamps):
+        f.write(str(line))
+    f.close
+
+    f = open("transitionTime_" + str(phquserID[i]) + ".txt", 'w')
+    for line in GPS.transitionTime(timestamps):
+        f.write(str(line))
+    f.close
