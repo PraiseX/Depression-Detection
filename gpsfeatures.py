@@ -1,6 +1,6 @@
 from sqlite3 import Timestamp
 from numpy import arccos
-import numpy
+import numpy 
 import math
 import statistics
 import pandas as pd  
@@ -10,31 +10,29 @@ import csv
 
 class GPS:
 
-   
-    def locationVariance(latitude, longitude):
-        arr = []
-
+    # tmp = dataframe['latitude'].values[n]
+    #         tmp2 = dataframe['latitude'].values[n]
+    def locationVariance(dataframe):
+        #arr = []
         #creates an array that is six elements long in order to calculate the variance by hour
-        for n in range(0, len(latitude)-1, 7):
-            for m in range(0, len(longitude)-1, 7):
-                tmp = latitude[n:n+6]
-                tmp2 = longitude[m:m+6]
-                """
-                print("tmp from " + str(n) + " to " + str(n+6) + " : ", tmp)
-                print("tmp2 from " + str(n) + " to " + str(n+6) + " : ", tmp2)
-                print("var from " + str(n) + " to " + str(n+6) + " : ",  statistics.variance(abs(tmp)))
-                print("var from " + str(n) + " to " + str(n+6) + " : ",  statistics.variance(abs(tmp2)))
-                """
-                varSum = statistics.variance(tmp) + statistics.variance(abs(tmp2))
-                lVarience = math.log(varSum if varSum > 0 else 1)
-                arr.append(lVarience)
-
-        arr=numpy.array(arr)
-
-        print(arr.reshape(1,-1))
-
+        #for n in range(0, len(dataframe)-1): 
+        tmp = numpy.asarray(dataframe['latitude'])
+        tmp2 = numpy.asarray(dataframe['longitude'])
+        #print("tmp: \n", tmp)
+        #print("tmp2: \n", tmp)
+        """
+            print("tmp from " + str(n) + " to " + str(n+6) + " : ", tmp)
+            print("tmp2 from " + str(n) + " to " + str(n+6) + " : ", tmp2)
+            print("var from " + str(n) + " to " + str(n+6) + " : ",  statistics.variance(abs(tmp)))
+            print("var from " + str(n) + " to " + str(n+6) + " : ",  statistics.variance(abs(tmp2)))
+        """
+        varSum = statistics.variance(tmp) + statistics.variance(abs(tmp2))
+        lVarience = math.log(varSum if varSum > 0 else 1)
+        #arr.append(lVarience)
+        #arr=numpy.array(arr)
+        #print(arr.reshape(-1, 1))
         #return an array that is one column long
-        return arr.reshape(1,-1)
+        return lVarience
 
     """
     def getTimeStamps(filename):
@@ -46,49 +44,54 @@ class GPS:
                 timeStampNum+=1
         return timeStampNum
     """
-    def speedMean(latitude, longitude, timeStamps):
+    def speedMean(dataframe):
             userSpeed = 0
             sumofSpeed = 0
-            arr = []
-            for n in range(0, len(timeStamps)-1, 7):
-
-                #gets the spped mean hourly
-                while(n+6<len(timeStamps)-1):
-                    userSpeed = numpy.square((float(latitude[n+6]) - float(latitude[n]))/(float(timeStamps[n+6])-float(timeStamps[n]))) + numpy.square((float(longitude[n+6]) - float(longitude[n]))/(float(timeStamps[n+6])-float(timeStamps[n])))
-                    sumofSpeed = numpy.sqrt(userSpeed)
-                    meanofSpeed =  (1/len(timeStamps)-1)*sumofSpeed 
-                    arr.append(meanofSpeed)
-            arr=numpy.array(arr)
-            return arr.reshape(1,-1)
+            #arr = []
+            for n in range(1, len(dataframe)-1): 
+                userlong = dataframe['latitude'].values[n-1]
+                userlong2 = dataframe['latitude'].values[n]
+                userlat=dataframe['longitude'].values[n-1]
+                userlat2=dataframe['longitude'].values[n]
+                usertime = dataframe['time'].values[n-1]
+                usertime2 = dataframe['time'].values[n]
+                userSpeed = numpy.square((userlat2 - userlat)/(usertime2-usertime)) + numpy.square((userlong2 - userlong)/(usertime2-usertime))
+                sumofSpeed += numpy.sqrt(userSpeed)
+                
+            meanofSpeed =  (1/len(dataframe)-1)*sumofSpeed 
+            #arr.append(meanofSpeed)
+            
+            #arr=numpy.array(arr)
+            return meanofSpeed
     
 
-    def totalDistance(latitude, longitude, timeStamps):
+    def totalDistance(dataframe):
         avgD = 0
         arr = []
         #creates an array that is six elements long in order to calculate the distance by hour
-        for n in range(0, len(latitude)-1, 7):
-            for m in range(0, len(longitude)-1, 7):
-                tmp = latitude[n:n+6]
-                tmp2 = longitude[n:n+6]
-                d = numpy.square(latitude[n+1]-latitude[n]) + numpy.square(longitude[m+1]+longitude[m])
-                avgD = numpy.sqrt(d)
-                avgD+=avgD
-                arr.append(avgD)
-        arr = numpy.array(arr)
-        return arr.reshape(1,-1)
+        for n in range(1, len(dataframe)-1): 
+            userlong = dataframe['latitude'].values[n-1]
+            userlong2 = dataframe['latitude'].values[n]
+            userlat=dataframe['longitude'].values[n-1]
+            userlat2=dataframe['longitude'].values[n]
+            userSum = numpy.square((userlat2 - userlat)) + numpy.square((userlong2 - userlong))
+            d = numpy.sqrt(userSum)
+            avgD += d
+    
+        #arr.append(avgD)
+        #arr = numpy.array(arr)
+        return avgD
     
     #trdef kClusters():
 
-    def transitionTime(travelState):
-        timeMoving = 0
+    def transitionTime(dataframe):
+        isMoving = 0
         arr = []
         #creates an array that is six elements long in order to calculate the transition time by hour
-        for i in range(0, len(travelState)-1, 7):
-            tmp = travelState[i:i+6]
-            for i in range(0, len(tmp)-1):
-                if tmp[i].__eq__("moving"):
-                    timeMoving+=1
-            transitionRate = timeMoving/len(travelState)-1
-            arr.append(transitionRate)
-        arr = numpy.array(arr)
-        return arr.reshape(1,-1)
+        for i in range(0, len(dataframe['travelstate'])):
+            if i.__eq__("moving"):
+                isMoving+=1   
+        transitionRate = isMoving/(len(dataframe['travelstate'])-1)
+        #arr.append(transitionRate)
+        #arr = numpy.array(arr)
+        return transitionRate

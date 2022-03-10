@@ -25,41 +25,52 @@ from gpsfeatures import GPS
 path = "C:/Users/reeli/OneDrive/Desktop/MQP/dataset/dataset/sensing/gps/"
 phqList=pd.read_csv(r"C:\Users\reeli\OneDrive\Desktop\MQP\dataset\dataset\survey\PHQ-9.csv")
 phquserID=phqList['uid']
-print("PHQUSERID:", np.asarray(phquserID))
+#print("PHQUSERID:", np.asarray(phquserID))
 phquserID=np.asarray(phquserID)
-
+arr = []
 
 for i, idx in enumerate(phquserID):
     gpsFile=pd.read_csv(path+'gps_{}.csv'.format(phquserID[i]), index_col=False)
-      
+    #print("gps file columns: \n", gpsFile.columns.tolist)
+    #gpsSeries = pd.Series(gpsFile)  
     #print("file:", gpsFile)
-    userLatitude = gpsFile[['latitude']]
-    userLatitude = np.asarray(userLatitude)
+    #userLatitude = gpsFile[['latitude']]
+    #userLatitude = np.asarray(userLatitude)
     #print("userLatitude: ", userLatitude)
-    userLongitude = gpsFile[['longitude']]
-    userLongitude = np.asarray(userLongitude)
-    timestamps=gpsFile[['time']]
-    timestamps = np.asarray(timestamps)
-    travelState = gpsFile[['travelstate']]
+    #userLongitude = gpsFile[['longitude']]
+    #userLongitude = np.asarray(userLongitude)
+    usertime=pd.DataFrame(gpsFile['time'])
+    #print("user " + str(phquserID[i]) + " length", len(usertime))
+    #print("usertime for" + str(phquserID[i]) + ": ", usertime)
+    #timestamps = np.asarray(timestamps)
+    #travelState = gpsFile[['travelstate']]
 
-    f = open("locationVarience_" + str(phquserID[i]) + ".txt", 'w')
+    location_variance, speed_mean, total_distance, transition_time = [], [], [], [] 
 
-    #if the array is one row with X amount of columns, it should read a row, convert it to a string, then write the element in the row before moving to the next one, however that doesn't seem to be happening
-    for line in GPS.locationVariance(userLatitude.flatten('A'), userLongitude.flatten('A')):
-        f.write(str(line))
-    f.close
+    starttime = usertime.values[0]
+    endttime =  usertime.values[-1]
+    step = 7200
+    #print("startime: ", starttime)
+    #print("endtime: ", endttime)
+    for periodStart in np.arange(starttime, endttime, step):
+        periodEnd = periodStart+step
+        tmpdata = gpsFile[(gpsFile['time']>=periodStart) & (gpsFile['time']<periodEnd)] 
+        #print("tmpdata latituude for " + str(phquserID[i]) +":\n", len(np.asarray(tmpdata['latitude'])) )
+        while not arr:    
+            location_variance.append(GPS.locationVariance(tmpdata))
+            speed_mean.append(GPS.speedMean(tmpdata))
+            total_distance.append(GPS.totalDistance(tmpdata))
+            transition_time.append(GPS.transitionTime(tmpdata))
 
-    f = open("speedMean_" + str(phquserID[i]) + ".txt", 'w')
-    for line in GPS.speedMean(userLatitude, userLongitude, timestamps):
-        f.write(str(line))
-    f.close
+    result = pd.DataFrame()
+    result['location varience'] = location_variance
+    result['speed mean'] = speed_mean
+    result['total distance'] = total_distance
+    result['transition time'] = transition_time
+    result.to_csv('gpsFeature' + str(phquserID[i]) + '.csv', index=False)
 
-    f = open("totalDistance_" + str(phquserID[i]) + ".txt", 'w')
-    for line in GPS.totalDistance(userLatitude, userLongitude, timestamps):
-        f.write(str(line))
-    f.close
 
-    f = open("transitionTime_" + str(phquserID[i]) + ".txt", 'w')
-    for line in GPS.transitionTime(timestamps):
-        f.write(str(line))
-    f.close
+    #starttime = gpsFile[]
+   
+    
+  
