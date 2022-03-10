@@ -56,11 +56,17 @@ for i, idx in enumerate(phquserID):
         periodEnd = periodStart+step
         tmpdata = gpsFile[(gpsFile['time']>=periodStart) & (gpsFile['time']<periodEnd)] 
         #print("tmpdata latituude for " + str(phquserID[i]) +":\n", len(np.asarray(tmpdata['latitude'])) )
-        while not arr:    
-            location_variance.append(GPS.locationVariance(tmpdata))
-            speed_mean.append(GPS.speedMean(tmpdata))
-            total_distance.append(GPS.totalDistance(tmpdata))
-            transition_time.append(GPS.transitionTime(tmpdata))
+        if len(tmpdata.index)>2:
+            #print( tmpdata)    
+            print("location varience for " + str(phquserID[i]) +":\n", location_variance.append(GPS.locationVariance(tmpdata)))
+            print("speed mean for " + str(phquserID[i]) +":\n", speed_mean.append(GPS.speedMean(tmpdata)))
+            print("total time for " + str(phquserID[i]) +":\n", total_distance.append(GPS.totalDistance(tmpdata)))
+            print("transition time for " + str(phquserID[i]) +":\n", transition_time.append(GPS.transitionTime(tmpdata)))
+            #print(tmpdata)
+            # location_variance.append(GPS.locationVariance(tmpdata))
+            # speed_mean.append(GPS.speedMean(tmpdata))
+            # total_distance.append(GPS.totalDistance(tmpdata))
+            # transition_time.append(GPS.transitionTime(tmpdata))
 
     result = pd.DataFrame()
     result['location varience'] = location_variance
