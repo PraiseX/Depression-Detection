@@ -31,7 +31,7 @@ class GPS:
         """
         varSum = statistics.variance(tmp) + statistics.variance(tmp2)
         print("varsum: ", varSum)
-        lVarience = math.log(varSum if varSum>0 else 1)
+        lVarience = math.log(varSum if varSum>0 else 1.0e-100)
         #arr.append(lVarience)
         #arr=numpy.array(arr)
         #print(arr.reshape(-1, 1))
@@ -99,7 +99,7 @@ class GPS:
         totalTime = time[-1] - time[0]
         arr = []
         #creates an array that is six elements long in order to calculate the transition time by hour
-        for i in range(1, len(dataframe['travelstate'])-1):
+        for i in range(0, len(dataframe['travelstate'])-1):
             
             if (dataframe['travelstate'].values[i].__eq__("moving")):
                 isMoving = time[i]
