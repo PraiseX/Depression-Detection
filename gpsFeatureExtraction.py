@@ -57,7 +57,7 @@ for i, idx in enumerate(phquserID):
         tmpdata = gpsFile[(gpsFile['time']>=periodStart) & (gpsFile['time']<periodEnd)] 
         #print("tmpdata latituude for " + str(phquserID[i]) +":\n", len(np.asarray(tmpdata['latitude'])) )
         if len(tmpdata.index)>2:
-            #print( tmpdata)    
+            print( tmpdata)    
             print("location varience for " + str(phquserID[i]) +":\n", location_variance.append(GPS.locationVariance(tmpdata)))
             print("speed mean for " + str(phquserID[i]) +":\n", speed_mean.append(GPS.speedMean(tmpdata)))
             print("total time for " + str(phquserID[i]) +":\n", total_distance.append(GPS.totalDistance(tmpdata)))

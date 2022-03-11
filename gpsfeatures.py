@@ -6,6 +6,8 @@ import statistics
 import pandas as pd  
 import csv
 
+from pyparsing import And
+
 #path = "C:\Users\\reeli\OneDrive\Desktop\MQP\dataset\dataset\sensing\gps\\"
 
 class GPS:
@@ -28,12 +30,13 @@ class GPS:
             print("var from " + str(n) + " to " + str(n+6) + " : ",  statistics.variance(abs(tmp2)))
         """
         varSum = statistics.variance(tmp) + statistics.variance(tmp2)
-        lVarience = math.log(varSum if varSum > 0 else 1)
+        print("varsum: ", varSum)
+        lVarience = math.log(varSum if varSum>0 else 1)
         #arr.append(lVarience)
         #arr=numpy.array(arr)
         #print(arr.reshape(-1, 1))
         #return an array that is one column long
-        #print("lVarience: ", lVarience)
+        print("lVarience: ", lVarience)
         return lVarience
 
     """
@@ -51,7 +54,7 @@ class GPS:
         userSpeed = 0
         sumofSpeed = 0
         #arr = []
-        for n in range(1, len(dataframe)-1): 
+        for n in range(1, len(dataframe)): 
             userlong = dataframe['longitude'].values[n-1]
             userlong2 = dataframe['longitude'].values[n]
             userlat=dataframe['latitude'].values[n-1]
@@ -65,14 +68,14 @@ class GPS:
             
             #arr=numpy.array(arr)        print("Speed Mean: ", meanofSpeed)
 
-            return meanofSpeed
+        return meanofSpeed
     
 
     def totalDistance(dataframe):
         avgD = 0
         arr = []
         #creates an array that is six elements long in order to calculate the distance by hour
-        for n in range(1, len(dataframe)-1): 
+        for n in range(1, len(dataframe)): 
             userlong = dataframe['longitude'].values[n-1]
             userlong2 = dataframe['longitude'].values[n]
             userlat=dataframe['latitude'].values[n-1]
@@ -93,17 +96,18 @@ class GPS:
         isMoving2 = 0
         time = numpy.asarray(dataframe['time'])
         timeSum = 0
-        totalTime =time[-1] - time[0]
+        totalTime = time[-1] - time[0]
         arr = []
         #creates an array that is six elements long in order to calculate the transition time by hour
-        for i in range(0, len(dataframe['travelstate'])-1):
-            if dataframe['travelstate'].values[i].__eq__("moving"):
+        for i in range(1, len(dataframe['travelstate'])-1):
+            
+            if (dataframe['travelstate'].values[i].__eq__("moving")):
                 isMoving = time[i]
                 isMoving2 = time[i+1]
                 timeSum += isMoving2 - isMoving
-    
+
         transitionRate = timeSum/totalTime
         #arr.append(transitionRate)
         #arr = numpy.array(arr)
-        #print("transition rate: ", transitionRate)
+        print("transition rate: ", transitionRate)
         return transitionRate
